@@ -33,7 +33,7 @@ void *mymalloc(size_t size, char* file, int line){
         init_heap();
     }
     header *ptr = head;
-    
+
     return;
 }
 
@@ -43,6 +43,10 @@ void coalesce(){
 
 void myfree(void *ptr, char* file, int line){
     return;
+}
+
+int main(){
+    printf("conflict");
 }
 
 

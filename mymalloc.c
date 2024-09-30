@@ -1,7 +1,29 @@
-#define MEMLENGTH 4096;
+#include <stdio.h>
+#include <stdlib.h>
 
-int init = 0;
-//Not Initialized
+
+#define MEMLENGTH 4096
+
+static int init = 0; //Not Initialized
+
+
+// Our Memory Array
+static union{
+    char bytes[MEMLENGTH];
+    double not_used;
+
+} heap;
+
+// Blocks to allocate memory
+typedef struct header{
+    int free;
+    size_t size;
+    struct header* next;
+
+} header;
+
+static header *head = NULL; // First block is null
+
 
 
 

@@ -24,6 +24,18 @@ typedef struct header{
 
 static header *head = NULL; // First block is null
 
+void *mymalloc(size_t size, char* file, int line){
+    return;
+}
+
+void coalesce(){
+    return;
+}
+
+void myfree(void *ptr, char* file, int line){
+    return;
+}
+
 
 
 

@@ -102,7 +102,7 @@ void *mymalloc(size_t size, char* file, int line){
     while(ptr != NULL){
         //if the chunk is already allocated or if payload space is too small, move on to the next chunk. 
         if((ptr -> free == 0) || (ptr -> size < requestedSize)){
-            offset = ptr -> size;
+            offset += ptr -> size;
             ptr = ptr -> next;
 
         }else if(ptr -> size == requestedSize){    //if the payload size matches perfectly, allocate the chunk return a pointer to its payload.

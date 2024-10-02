@@ -25,6 +25,7 @@ typedef struct header{
 static header *head = NULL; // First block is null
 
 void init_heap(){
+    
     //code
     init = 1; //mark as initilized once init_heap is called
     return;
@@ -40,6 +41,24 @@ void *mymalloc(size_t size, char* file, int line){
 }
 
 void coalesce(){
+    header *ptr = head;
+
+    
+    while (ptr&&ptr->next){
+
+        //if two adjacent blocks are free add their size and deassign the pointer to the second one
+        if (ptr->free && ptr->next->free){
+            ptr->size = ptr->size+ptr->next->size;
+            ptr->next=ptr->next->next;
+
+        }else{
+            //we put the ptr.next statement in the else block because if multiple consecutive
+            //chunks are free, we want the pointer to stay on the current free block.
+            //we only want the pointer to move when the next pointer is not free, so it cannot coalesce
+            ptr=ptr->next;
+        }
+        
+    }
     return;
 }
 

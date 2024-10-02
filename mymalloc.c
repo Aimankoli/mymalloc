@@ -59,14 +59,29 @@ static union{
 // Blocks to allocate memory. Make sure it is aligned with 8.
 typedef struct header{
     int free;
-    int size; //I'm changing this from size_t to a int to fix alignment. If an int is too small to store size, then use unsigned int.    
+    size_t size;    
     struct header* next;
 
-} header;  //int + int + header pointer = size of 16 bytes
+} header;  //int + size_t + header pointer = size of 24 bytes
 
 static header *head = NULL; // First block is null
 
 void init_heap(){
+    //heap.bytes is currently a char array
+    //we want head to be a pointer to the first memory address in the heap
+    head = (header *)heap.bytes;
+    //heap.bytes points to the first index (char *)
+    //cast it to a header
+    //assign it to head
+
+    head->free=1;
+    //the size (bytes taken by metadata) is the length of the array, subtract the space taken
+    //by the block of metadata. This will tell us where the actual data will start
+    head->size=MEMLENGTH-sizeof(header);
+    head->next=NULL;
+    init = 1; //mark as initilized once init_heap is called
+
+    atexit(leak_detection);
     return;
 }
 
@@ -74,10 +89,50 @@ void *mymalloc(size_t size, char* file, int line){
     if (!init){
         init_heap();
     }
-    header *ptr = head;
 
-    return;
+    //rounding up requested payload size to a multiple of 8. 0 bytes also counts as a multiple of 8, so we only add 7 so a 0 byte value can be preserved 
+    size_t requestedSize = ((size + 7)/8) * 8;
+
+    //If a payload of 0 bytes is requested, return null
+    if(requestedSize == 0) return NULL;
+
+    //look for an unallocated chunk that is large enough for the payload. If none can be found, return NULL. 
+    header *ptr = head;
+    size_t offset = 0;  //Finds what point in the heap that a chunk begins with
+    while(ptr != NULL){
+        //if the chunk is already allocated or if payload space is too small, move on to the next chunk. 
+        if((ptr -> free == 0) || (ptr -> size < requestedSize)){
+            offset = ptr -> size;
+            ptr = ptr -> next;
+
+        }else if(ptr -> size == requestedSize){    //if the payload size matches perfectly, allocate the chunk return a pointer to its payload.
+            ptr -> free = 0;
+            ptr -> size = requestedSize + sizeof(header);
+
+            return heap.bytes + offset + sizeof(header); //Finds a pointer to the payload. The pointer is first cast as a char pointer to make sure that we only travel to the end of the metadata.
+
+        } else{//If chunk is bigger than necessary, split it into an allocated and unallocated chunk.
+            size_t originalChunkSize = ptr -> size;
+            size_t unallocatedChunkSize = originalChunkSize - (ptr -> size);
+
+            //finds where to create new unallocated chunk
+            header *unallocatedChunk = (header *)(heap.bytes + offset + requestedSize + sizeof(header));
+
+            //creates the allocated and unallocated chunks. Array syntax used to create the unallocated chunk is the same as dereferencing
+            unallocatedChunk[0] = {.free = 1, .size = unallocatedChunkSize, .next = (ptr -> next)};
+            ptr -> free = 0;
+            ptr -> size = requestedSize + sizeof(header);
+            ptr -> next = unallocatedChunk;
+
+            return heap.bytes + offset + sizeof(header);
+        }
+    }
+
+    //If there are no chunks big enough, return NULL
+    return NULL;
 }
+
+
 
 void coalesce(){
     return;

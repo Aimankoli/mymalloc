@@ -17,7 +17,7 @@ static union{
 // Blocks to allocate memory
 typedef struct header{
     int free;
-    size_t size;
+    size_t size; //size_t or int??
     struct header* next;
 
 } header;
@@ -25,12 +25,26 @@ typedef struct header{
 static header *head = NULL; // First block is null
 
 void init_heap(){
-    
-    //code
+    //heap.bytes is currently a char array
+    //we want head to be a pointer to the first memory address in the heap
+    head = (header *)heap.bytes;
+    //heap.bytes points to the first index (char *)
+    //cast it to a header
+    //assign it to head
+
+    head->free=1;
+    //the size (bytes taken by metadata) is the length of the array, subtract the space taken
+    //by the block of metadata. This will tell us where the actual data will start
+    head->size=MEMLENGTH-sizeof(header);
+    head->next=NULL;
     init = 1; //mark as initilized once init_heap is called
     return;
+    atexit(leak_detection);
 }
 
+void leak_detection(){
+    return;
+}
 void *mymalloc(size_t size, char* file, int line){
     if (!init){
         init_heap();
@@ -69,10 +83,13 @@ void myfree(void *ptr, char* file, int line){
         fprintf(stderr, "free: NULL pointer (%s:%d)\n", file, line);
         exit(2);
     }
+    //If the pointer is not in the bounds of the array, report and error
+    //Clarify memory addresses with prof??
     
 
-    coalesce();
     //Coalesce blocks after every free() call
+    coalesce();
+    
 
     return;
 }

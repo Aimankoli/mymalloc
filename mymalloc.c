@@ -71,6 +71,25 @@ typedef struct header{
 
 static header *head = NULL; // First block is null
 
+void leak_detection(){
+    header *ptr = head;
+    int objects=0;
+    size_t mem = 0;
+    while (ptr!=NULL){
+        if (!(ptr->free)){
+            objects++;
+            mem+=ptr->size;
+        }
+        ptr=ptr->next;
+    }
+    if (objects>0){
+        fprintf(stderr, "mymalloc: %zu bytes leaked in %d objects.\n", mem, objects);
+
+    }
+    
+    return;
+}
+
 void init_heap(){
     //heap.bytes is currently a char array
     //we want head to be a pointer to the first memory address in the heap
@@ -90,10 +109,7 @@ void init_heap(){
     
 }
 
-void leak_detection(){
-    
-    return;
-}
+
 void *mymalloc(size_t size, char* file, int line){
     if (!init){
         init_heap();
@@ -138,6 +154,7 @@ void *mymalloc(size_t size, char* file, int line){
     }
 
     //If there are no chunks big enough, return NULL
+    fprintf(stderr, "Unable to allocate %zu bytes (%s, %d)", size, file, line);
     return NULL;
 }
 
@@ -200,7 +217,10 @@ void myfree(void *ptr, char* file, int line){
 }
 
 int main(){
-    printf("conflict");
+    char *test = malloc(sizeof(char));
+    free(test);
+    free(test);
+    printf("successful");
 }
 
 

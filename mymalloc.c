@@ -1,3 +1,8 @@
+//Questions
+//File and line??
+//Out of bounds pointer
+//size_t or int??
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "mymalloc.h"
@@ -43,6 +48,7 @@ void init_heap(){
 }
 
 void leak_detection(){
+    
     return;
 }
 void *mymalloc(size_t size, char* file, int line){
@@ -83,8 +89,24 @@ void myfree(void *ptr, char* file, int line){
         fprintf(stderr, "free: NULL pointer (%s:%d)\n", file, line);
         exit(2);
     }
+
+    // create a ptr to the metadata 
+    header *headptr = (header *)(char *)ptr - sizeof(header);
+    if (headptr->free){
+        fprintf(stderr, "free: Double free (%s, %d)\n", file, line);
+        exit(2);
+    }
+
     //If the pointer is not in the bounds of the array, report and error
     //Clarify memory addresses with prof??
+    if ((char *)head > (char *)headptr || (char *)headptr > (char *)head+MEMLENGTH){
+        fprintf(stderr, "free: Invalid pointer (%s, %d)\n", file, line);
+        exit(2);
+    }
+    
+    headptr->free=1;
+
+    
     
 
     //Coalesce blocks after every free() call

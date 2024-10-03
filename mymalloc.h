@@ -2,6 +2,8 @@
 #define _MYMALLOC_H
 
 #include <stdlib.h>
+/*note: when pushing something from a particular branch, use this  
+command git branch -branch name-    (no hypens)*/
 
 #define malloc(x) mymalloc(x, __FILE__, __LINE__)
 #define free(x) myfree(x, __FILE__, __LINE__)

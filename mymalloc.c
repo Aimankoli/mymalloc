@@ -1,12 +1,17 @@
+//Questions
+//File and line??
+//Out of bounds pointer
+//size_t or int??
+
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "mymalloc.h"
 /*note: when pushing something from a particular branch, use this  
 command git branch -branch name-    (no hypens)*/
 
 #define MEMLENGTH 4096
 
-static int init = 0; //Not Initialized
+static int init = 0; //Not Initialized at the start
 
 
 // Our Memory Array
@@ -59,12 +64,30 @@ static union{
 // Blocks to allocate memory. Make sure it is aligned with 8.
 typedef struct header{
     int free;
-    size_t size;    
+    size_t size; //size_t or int??
     struct header* next;
-
-} header;  //int + size_t + header pointer = size of 24 bytes
+} header;  //int + size_t + header* = size of 24 bytes
 
 static header *head = NULL; // First block is null
+
+void leak_detection(){
+    header *ptr = head;
+    int objects=0;
+    size_t mem = 0;
+    while (ptr!=NULL){
+        if (!(ptr->free)){
+            objects++;
+            mem+=ptr->size;
+        }
+        ptr=ptr->next;
+    }
+    if (objects>0){
+        fprintf(stderr, "mymalloc: %zu bytes leaked in %d objects.\n", mem, objects);
+
+    }
+    
+    return;
+}
 
 void init_heap(){
     //heap.bytes is currently a char array
@@ -77,13 +100,13 @@ void init_heap(){
     head->free=1;
     //the size (bytes taken by metadata) is the length of the array, subtract the space taken
     //by the block of metadata. This will tell us where the actual data will start
-    head->size=MEMLENGTH-sizeof(header);
+    head -> size=MEMLENGTH;  //head->size=MEMLENGTH-sizeof(header);
     head->next=NULL;
     init = 1; //mark as initilized once init_heap is called
-
     atexit(leak_detection);
     return;
 }
+
 
 void *mymalloc(size_t size, char* file, int line){
     if (!init){
@@ -102,7 +125,7 @@ void *mymalloc(size_t size, char* file, int line){
     while(ptr != NULL){
         //if the chunk is already allocated or if payload space is too small, move on to the next chunk. 
         if((ptr -> free == 0) || (ptr -> size < requestedSize)){
-            offset = ptr -> size;
+            offset += ptr -> size;
             ptr = ptr -> next;
 
         }else if(ptr -> size == requestedSize){    //if the payload size matches perfectly, allocate the chunk return a pointer to its payload.
@@ -113,15 +136,17 @@ void *mymalloc(size_t size, char* file, int line){
 
         } else{//If chunk is bigger than necessary, split it into an allocated and unallocated chunk.
             size_t originalChunkSize = ptr -> size;
-            size_t unallocatedChunkSize = originalChunkSize - (ptr -> size);
+            size_t targetChunkSize = requestedSize + sizeof(header);
+            size_t unallocatedChunkSize = originalChunkSize - targetChunkSize;
 
             //finds where to create new unallocated chunk
             header *unallocatedChunk = (header *)(heap.bytes + offset + requestedSize + sizeof(header));
 
             //creates the allocated and unallocated chunks. Array syntax used to create the unallocated chunk is the same as dereferencing
-            unallocatedChunk[0] = {.free = 1, .size = unallocatedChunkSize, .next = (ptr -> next)};
+            header n = {.free = 1, .size = unallocatedChunkSize, .next = (ptr -> next)};
+            unallocatedChunk[0] = n;
             ptr -> free = 0;
-            ptr -> size = requestedSize + sizeof(header);
+            ptr -> size = targetChunkSize;
             ptr -> next = unallocatedChunk;
 
             return heap.bytes + offset + sizeof(header);
@@ -129,23 +154,69 @@ void *mymalloc(size_t size, char* file, int line){
     }
 
     //If there are no chunks big enough, return NULL
+    fprintf(stderr, "Unable to allocate %zu bytes (%s, %d)", size, file, line);
     return NULL;
 }
 
-
-
 void coalesce(){
+    header *ptr = head;
+
+    
+    while (ptr&&ptr->next){
+
+        //if two adjacent blocks are free add their size and deassign the pointer to the second one
+        if (ptr->free && ptr->next->free){
+            ptr->size = ptr->size+ptr->next->size;
+            ptr->next=ptr->next->next;
+
+        }else{
+            //we put the ptr.next statement in the else block because if multiple consecutive
+            //chunks are free, we want the pointer to stay on the current free block.
+            //we only want the pointer to move when the next pointer is not free, so it cannot coalesce
+            ptr=ptr->next;
+        }
+        
+    }
     return;
 }
 
 void myfree(void *ptr, char* file, int line){
+
+    //If the pointer passed to free is null, we have to report an error saying we have a free pointer
+    if (!ptr){
+        fprintf(stderr, "free: NULL pointer (%s:%d)\n", file, line);
+        exit(2);
+    }
+
+    // create a ptr to the metadata 
+    header *headptr = (header *)((char *)ptr - sizeof(header));
+    if (headptr->free){
+        fprintf(stderr, "free: Double free (%s, %d)\n", file, line);
+        exit(2);
+    }
+
+    //If the pointer is not in the bounds of the array, report and error
+    //Clarify memory addresses with prof??
+    if ((char *)head > (char *)headptr || (char *)headptr > (char *)head+MEMLENGTH){
+        fprintf(stderr, "free: Invalid pointer (%s, %d)\n", file, line);
+        exit(2);
+    }
+    
+    headptr->free=1;
+
+    
+    
+
+    //Coalesce blocks after every free() call
+    coalesce();
+    
+
     return;
 }
 
-int main(){
-    printf("conflict");
-}
-
-
-
-
+// int main(){
+//     char *test = malloc(sizeof(char));
+//     free(test);
+//     free(test);
+//     printf("successful");
+// }

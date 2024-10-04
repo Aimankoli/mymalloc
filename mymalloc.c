@@ -105,6 +105,7 @@ void init_heap(){
     init = 1; //mark as initilized once init_heap is called
     atexit(leak_detection);
     return;
+    
 }
 
 

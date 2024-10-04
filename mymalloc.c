@@ -241,23 +241,20 @@ void printmem(){
     }
 }
 
-#define mymalloc(size) mymalloc(size, __FILE__, __LINE__)
-#define myfree(ptr) myfree(ptr, __FILE__, __LINE__)
-
 int main(){
     
-    int *ptr1 = mymalloc(1000);
+    int *ptr1 = malloc(1000);
     
     *ptr1=1;
     printf("1000 bytes allocated\n");
-    char *ptr2 = mymalloc(1000);
+    char *ptr2 = malloc(1000);
     *ptr2='t';
     printf("1000 bytes allocated\n");
     printmem();
-    myfree(ptr1);
+    free(ptr1);
     printf("free1\n");
 
-    myfree(ptr2);
+    free(ptr2);
 
     printf("free 2\n\n");
     printmem();

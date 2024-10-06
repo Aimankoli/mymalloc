@@ -241,28 +241,28 @@ void printmem(){
     }
 }
 
-int main(){
+// int main(){
     
-    int *ptr1 = malloc(1000);
+//     int *ptr1 = malloc(1000);
     
-    *ptr1=1;
-    printf("1000 bytes allocated\n");
-    char *ptr2 = malloc(1000);
-    *ptr2='t';
-    printf("1000 bytes allocated\n");
-    printmem();
-    free(ptr1);
-    printf("free1\n");
+//     *ptr1=1;
+//     printf("1000 bytes allocated\n");
+//     char *ptr2 = malloc(1000);
+//     *ptr2='t';
+//     printf("1000 bytes allocated\n");
+//     printmem();
+//     free(ptr1);
+//     printf("free1\n");
 
-    free(ptr2);
+//     free(ptr2);
 
-    printf("free 2\n\n");
-    printmem();
+//     printf("free 2\n\n");
+//     printmem();
 
     
     
 
-}
+// }
 
 
 

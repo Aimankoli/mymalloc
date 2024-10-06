@@ -28,7 +28,7 @@ void taskTwo(){
     }
 
     for(int i = 0; i < 120; i++){
-        printf("%d. %c\n", i, *(ptrArray[i])); //This is for testing
+        // printf("%d. %c\n", i, *(ptrArray[i])); //This is for testing
         free(ptrArray[i]);
     }
 }
@@ -131,9 +131,32 @@ void test(){
     taskFive();
 }
 
-
+// Function to calculate time difference in microseconds
+double time_diff(struct timeval start, struct timeval end) {
+    return (double)(end.tv_sec - start.tv_sec) * 1000000 + (double)(end.tv_usec - start.tv_usec);
+}
 int main(){
-    test();
+    struct timeval start, end;
+    double totaltime;
+    void (*funtuons[5])(void) = {taskOne, taskTwo, taskThree, taskFour, taskFive};
+
+    for (int j = 0; j < 5; j++) {
+        totaltime=0;
+        for (int i=0; i<50; i++){
+            gettimeofday(&start, NULL);
+            funtuons[j]();
+		    gettimeofday(&end, NULL);
+            totaltime+=time_diff(start, end);
+
+        }
+        printf("Task %d mean runtime: %f\n", j+1, (totaltime / 50));
+    }
+
+		
+
+
+
+    // test();
     return EXIT_SUCCESS;
 }
 

@@ -258,12 +258,75 @@ void printmem(){
 
 //     printf("free 2\n\n");
 //     printmem();
-
-    
-    
-
 // }
 
+void testOne();
+void testTwo();
 
+int main(){
 
+    testOne();
+    testTwo();
 
+    return EXIT_SUCCESS;
+}
+
+#define NUM_OF_CHUNKS 16
+
+void testOne(){
+     //See what happens if the entire heap is allocated and values are stored there. Then see what happens if it is deallocated and
+    //new memory is allocated in alternating patterns. See if the origin pattern remains for the unallocated chunks. For the sake
+    //of this test, the client will ask for 16 chunks of the same size. Each chunk will store character data.
+    char *data[16] = {0};
+    size_t payLoadSize = (MEMLENGTH/NUM_OF_CHUNKS) - sizeof(header);
+
+    for(int i = 0; i < NUM_OF_CHUNKS; i++){
+        printf("%d: ", i);
+
+        data[i] = (char *)malloc(payLoadSize); //The maximum possible payload size (4072)
+        for(int j = 0; j < payLoadSize; j++){
+            *(data[i] + j) = 'A';
+            printf("%c ", *(data[i] + j));
+        }
+
+        printf("\n");
+    }
+    printf("\n\n");
+
+    //alternate between freeing the chunks. Start the pattern by freeing the second chunk.
+    for(int i = 1, k = 1; i < NUM_OF_CHUNKS; k++){
+        free(data[i]);
+        i = 2 * k + 1;
+    }
+
+    //replace values in unallocated chunks with a new pattern
+    for(int i = 1, k = 1; i < NUM_OF_CHUNKS; k++){
+        data[i] = (char *)malloc(payLoadSize);
+        for(int j = 0; j < payLoadSize; j++){
+            *(data[i] + j) = 'B';
+        }
+
+        i = (k * 2) + 1;
+    }
+
+    //print out the heap
+    for(int i = 0; i < NUM_OF_CHUNKS; i++){
+        printf("%d: ", i);
+
+        for(int j = 0; j < payLoadSize; j++){
+            printf("%c ", *(data[i] + j));
+        }
+
+        free(data[i]);
+        printf("\n");
+    }
+
+    printf("\n");
+}
+
+void testTwo(){
+    //See what happens if the client tries to allocate memory equal to the size of the heap
+    char *ptr = (char *)malloc(MEMLENGTH);
+
+    if(ptr) printf("Allocated memory the size of the heap.\n");
+}

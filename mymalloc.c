@@ -241,6 +241,8 @@ void printmem(){
     }
 }
 
+//Testing for the developers own use below.
+
 // int main(){
     
 //     int *ptr1 = malloc(1000);

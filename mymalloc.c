@@ -203,6 +203,7 @@ void myfree(void *ptr, char* file, int line) {
     }
 
     // Check if the pointer is within the bounds of the heap
+    // A pointer not assigned by malloc will be out of the heap
     if ((char *)ptr < (char *)heap.bytes || (char *)ptr >= (char *)heap.bytes + MEMLENGTH) {
         fprintf(stderr, "free: Invalid pointer (%s:%d)\n", file, line);
         exit(2);
@@ -229,6 +230,10 @@ void myfree(void *ptr, char* file, int line) {
     coalesce();
 }
 
+//END OF LIBRARY
+
+
+//This method is for testing and debugging
 void printmem(){
     header *ptr = head;
     int iter = 0;

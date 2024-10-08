@@ -49,5 +49,6 @@ Task 3 mean runtime: 26.780000
 Task 4 mean runtime: 108.340000
 Task 5 mean runtime: 39.080000
 
-
+To clean the compiled files, run
+$make clean
 

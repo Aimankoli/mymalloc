@@ -262,14 +262,20 @@ void printmem(){
 
 void testOne();
 void testTwo();
+void testThree();
+void testFour();
+void testFive();
 
-int main(){
+// int main(){
 
-    testOne();
-    testTwo();
+//     testOne();
+//     testTwo();
+//     testThree();
+//     testFour();
+//     testFive();
 
-    return EXIT_SUCCESS;
-}
+//     return EXIT_SUCCESS;
+// }
 
 #define NUM_OF_CHUNKS 16
 
@@ -277,7 +283,7 @@ void testOne(){
      //See what happens if the entire heap is allocated and values are stored there. Then see what happens if it is deallocated and
     //new memory is allocated in alternating patterns. See if the origin pattern remains for the unallocated chunks. For the sake
     //of this test, the client will ask for 16 chunks of the same size. Each chunk will store character data.
-    char *data[16] = {0};
+    char *data[NUM_OF_CHUNKS] = {0};
     size_t payLoadSize = (MEMLENGTH/NUM_OF_CHUNKS) - sizeof(header);
 
     for(int i = 0; i < NUM_OF_CHUNKS; i++){
@@ -329,4 +335,25 @@ void testTwo(){
     char *ptr = (char *)malloc(MEMLENGTH);
 
     if(ptr) printf("Allocated memory the size of the heap.\n");
+}
+
+void testThree(){
+    //This test is to see if you can free a chunk that has already been deallocated.
+    char *arr = (char *)malloc(10 * sizeof(char));
+    free(arr);
+    free(arr);
+
+    printf("I can't believe we've made it this far");
+}
+
+void testFour(){
+    //Test freeing a pointer that doesn't point to the beginning of a payload
+    char *arr = (char *)malloc(10 * sizeof(char));
+    free(arr + 1);
+}
+
+void testFive(){
+    //Test freeing something not allocated by malloc
+    char *arr = (char *)malloc(10 * sizeof(char));
+    free(arr + 10000);
 }

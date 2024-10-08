@@ -17,4 +17,11 @@ Important errors to look out for are calling free() with an address not provided
 
 To test for leak detection, we iterate through the heap and record any chunk that is still allocated. We will keep track of the number of leaked chunks and the total amount of bytes that they take up. A pointer to this function will be passed into the call for atexit() as an argument. This will occur in our initialization function. The initialization function is called at the beginning of malloc() and free() to check if the heap has been initialized yet.
 
+For general testing, we completely allocated the heap with chunks of the same size and created a byte pattern for every chunk. We deallocated and then reallocated
+the chunks in an alternating pattern and filled them with a new byte pattern. This test was to make sure that even after deallocating a chunk and replacing its
+values with new ones we could be sure that the other chunks would remain untouched. For the next test, we tried to see what would happen if the client asked for
+memory the size of the heap. The third tests checks if it is possible to allocate memory and then try to deallocate it twice. The fourth test sees if you can
+attempt to free an address that is not at the beginning of the payload, and the last check sees if it is possible to free an address that it located well 
+outside of the bounds of the heap.
+
 
